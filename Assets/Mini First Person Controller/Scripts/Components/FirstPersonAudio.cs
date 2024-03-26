@@ -3,8 +3,8 @@ using UnityEngine;
 
 public class FirstPersonAudio : MonoBehaviour
 {
-    public FirstPersonMovement character;
     public GroundCheck groundCheck;
+    public PlayerController playerController;
 
     [Header("Step")]
     public AudioSource stepAudio;
@@ -12,20 +12,12 @@ public class FirstPersonAudio : MonoBehaviour
     [Tooltip("Minimum velocity for moving audio to play")]
     /// <summary> "Minimum velocity for moving audio to play" </summary>
     public float velocityThreshold = .01f;
-    Vector2 lastCharacterPosition;
-    Vector2 CurrentCharacterPosition => new Vector2(character.transform.position.x, character.transform.position.z);
 
     [Header("Landing")]
     public AudioSource landingAudio;
     public AudioClip[] landingSFX;
 
-    [Header("Jump")]
-    public Jump jump;
-    public AudioSource jumpAudio;
-    public AudioClip[] jumpSFX;
-
     [Header("Crouch")]
-    public Crouch crouch;
     public AudioSource crouchStartAudio, crouchedAudio, crouchEndAudio;
     public AudioClip[] crouchStartSFX, crouchEndSFX;
 
@@ -35,27 +27,13 @@ public class FirstPersonAudio : MonoBehaviour
     void Reset()
     {
         // Setup stuff.
-        character = GetComponentInParent<FirstPersonMovement>();
+        playerController = GetComponentInParent<PlayerController>();
         groundCheck = (transform.parent ?? transform).GetComponentInChildren<GroundCheck>();
         stepAudio = GetOrCreateAudioSource("Step Audio");
         runningAudio = GetOrCreateAudioSource("Running Audio");
         landingAudio = GetOrCreateAudioSource("Landing Audio");
 
-        // Setup jump audio.
-        jump = GetComponentInParent<Jump>();
-        if (jump)
-        {
-            jumpAudio = GetOrCreateAudioSource("Jump audio");
-        }
-
         // Setup crouch audio.
-        crouch = GetComponentInParent<Crouch>();
-        if (crouch)
-        {
-            crouchStartAudio = GetOrCreateAudioSource("Crouch Start Audio");
-            crouchStartAudio = GetOrCreateAudioSource("Crouched Audio");
-            crouchStartAudio = GetOrCreateAudioSource("Crouch End Audio");
-        }
     }
 
     void OnEnable() => SubscribeToEvents();
@@ -65,14 +43,9 @@ public class FirstPersonAudio : MonoBehaviour
     void FixedUpdate()
     {
         // Play moving audio if the character is moving and on the ground.
-        float velocity = Vector3.Distance(CurrentCharacterPosition, lastCharacterPosition);
-        if (velocity >= velocityThreshold && groundCheck && groundCheck.isGrounded)
+        if (playerController.IsMove && groundCheck && groundCheck.isGrounded)
         {
-            if (crouch && crouch.IsCrouched)
-            {
-                SetPlayingMovingAudio(crouchedAudio);
-            }
-            else if (character.IsRunning)
+            if (playerController.IsRunning)
             {
                 SetPlayingMovingAudio(runningAudio);
             }
@@ -85,9 +58,6 @@ public class FirstPersonAudio : MonoBehaviour
         {
             SetPlayingMovingAudio(null);
         }
-
-        // Remember lastCharacterPosition.
-        lastCharacterPosition = CurrentCharacterPosition;
     }
 
 
@@ -112,9 +82,6 @@ public class FirstPersonAudio : MonoBehaviour
 
     #region Play instant-related audios.
     void PlayLandingAudio() => PlayRandomClip(landingAudio, landingSFX);
-    void PlayJumpAudio() => PlayRandomClip(jumpAudio, jumpSFX);
-    void PlayCrouchStartAudio() => PlayRandomClip(crouchStartAudio, crouchStartSFX);
-    void PlayCrouchEndAudio() => PlayRandomClip(crouchEndAudio, crouchEndSFX);
     #endregion
 
     #region Subscribe/unsubscribe to events.
@@ -123,18 +90,8 @@ public class FirstPersonAudio : MonoBehaviour
         // PlayLandingAudio when Grounded.
         groundCheck.Grounded += PlayLandingAudio;
 
-        // PlayJumpAudio when Jumped.
-        if (jump)
-        {
-            jump.Jumped += PlayJumpAudio;
-        }
-
         // Play crouch audio on crouch start/end.
-        if (crouch)
-        {
-            crouch.CrouchStart += PlayCrouchStartAudio;
-            crouch.CrouchEnd += PlayCrouchEndAudio;
-        }
+
     }
 
     void UnsubscribeToEvents()
@@ -142,18 +99,8 @@ public class FirstPersonAudio : MonoBehaviour
         // Undo PlayLandingAudio when Grounded.
         groundCheck.Grounded -= PlayLandingAudio;
 
-        // Undo PlayJumpAudio when Jumped.
-        if (jump)
-        {
-            jump.Jumped -= PlayJumpAudio;
-        }
-
         // Undo play crouch audio on crouch start/end.
-        if (crouch)
-        {
-            crouch.CrouchStart -= PlayCrouchStartAudio;
-            crouch.CrouchEnd -= PlayCrouchEndAudio;
-        }
+
     }
     #endregion
 

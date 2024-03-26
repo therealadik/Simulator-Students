@@ -10,11 +10,13 @@ public class FirstPersonLook : MonoBehaviour
     Vector2 velocity;
     Vector2 frameVelocity;
 
+    [SerializeField] Transform cameraPoint;
+
 
     void Reset()
     {
         // Get the character from the FirstPersonMovement in parents.
-        character = GetComponentInParent<FirstPersonMovement>().transform;
+        character = GetComponentInParent<PlayerController>().transform;
     }
 
     void Start()
@@ -35,5 +37,9 @@ public class FirstPersonLook : MonoBehaviour
         // Rotate camera up-down and controller left-right from velocity.
         transform.localRotation = Quaternion.AngleAxis(-velocity.y, Vector3.right);
         character.localRotation = Quaternion.AngleAxis(velocity.x, Vector3.up);
+    }
+    private void LateUpdate()
+    {
+        transform.position = cameraPoint.position;
     }
 }
