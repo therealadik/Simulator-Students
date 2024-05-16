@@ -1,89 +1,118 @@
-using NUnit.Framework;
-using System.Collections.Generic;
-using System.Linq;
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+[RequireComponent(typeof(CharacterController))]
+
 public class PlayerController : MonoBehaviour
 {
-    private const string AnimatorParameterRunName = "IsRun";
+    [SerializeField] float walkingSpeed = 7.5f;
+    [SerializeField] float runningSpeed = 11.5f;
+    [SerializeField] float gravity = 20.0f;
+    [SerializeField] float lookSpeed = 2.0f;
+    [SerializeField] float lookXLimit = 45.0f;
 
-    [SerializeField] private float _walkSpeed;
-    [SerializeField] private float _runSpeed;
-    [SerializeField] private float _jumpForce;
+    [SerializeField] Transform playerCamera;
 
-    private Rigidbody _rb;
-    private Animator _animator;
+    [Header("Sounds")]
+    [SerializeField] AudioSource footstep;
 
-    private bool _canRun = true;
-    private bool _runInput = false;
+    public bool canMove { get; private set; } = true;
+    public bool isControlled { get; private set; } = true;
 
-    private float _currentSpeed;
-    private Vector2 direction;
-    private Vector3 movement;
+    public bool isMoving => Math.Abs(moveDirection.x) + Math.Abs(moveDirection.z) > 0.05f;
 
-    public bool IsMove => Mathf.Abs(_rb.velocity.x) + Mathf.Abs(_rb.velocity.z) > 0.01f;
-    public bool IsRunning { get; private set; }
+    private Vector2 directionInput;
+    private Vector3 moveDirection = Vector3.zero;
+
+    private float rotationX = 0;
+    private bool isRunning = false;
+
+    private Animator animator;
+    private CharacterController characterController;
 
 
     private void Awake()
     {
-        _rb = GetComponent<Rigidbody>();
+        animator = GetComponentInChildren<Animator>();
+        characterController = GetComponent<CharacterController>();
     }
 
     void Start()
     {
-        Initialize(); 
-        //VisibleOff();
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
 
-    // Update is called once per frame
     void Update()
     {
-        IsRunning = _canRun && _runInput;
-        _currentSpeed = IsRunning ? _runSpeed : _walkSpeed;
+        // We are grounded, so recalculate move direction based on axes
+        Vector3 forward = transform.forward;
+        Vector3 right = transform.right;
+        // Press Left Shift to run
+        float curSpeedX = canMove ? (isRunning ? runningSpeed : walkingSpeed) * directionInput.y : 0;
+        float curSpeedY = canMove ? (isRunning ? runningSpeed : walkingSpeed) * directionInput.x : 0;
+        float movementDirectionY = moveDirection.y;
 
+        moveDirection = (forward * curSpeedX) + (right * curSpeedY);
+        moveDirection.y = movementDirectionY;
 
+        // Apply gravity. Gravity is multiplied by deltaTime twice (once here, and once below
+        // when the moveDirection is multiplied by deltaTime). This is because gravity should be applied
+        // as an acceleration (ms^-2)
+        if (!characterController.isGrounded)
+        {
+            moveDirection.y -= gravity * Time.deltaTime;
+        }
 
+        // Move the controller
+        characterController.Move(moveDirection * Time.deltaTime);
+
+        // Player and Camera rotation
+        CameraRotate();
         UpdateAnimator();
+        UpdateAudio();
+    }
+
+    private void UpdateAudio()
+    {
+        if (isMoving)
+        {
+            if (footstep.isPlaying == false)
+            {
+                footstep.Play();
+            }
+        }
+        else
+        {
+            footstep.Stop();
+        }
     }
 
     private void UpdateAnimator()
     {
-        if (_animator)
+        animator.SetBool("isWalk", isMoving);
+        animator.SetBool("isRun", isRunning && isMoving);
+    }
+
+    private void CameraRotate()
+    {
+        if (canMove)
         {
-            _animator.SetBool(AnimatorParameterRunName, IsMove);
+            rotationX += -Input.GetAxis("Mouse Y") * lookSpeed;
+            rotationX = Mathf.Clamp(rotationX, -lookXLimit, lookXLimit);
+            playerCamera.localRotation = Quaternion.Euler(rotationX, 0, 0);
+            transform.rotation *= Quaternion.Euler(0, Input.GetAxis("Mouse X") * lookSpeed, 0);
         }
     }
 
-    private void VisibleOff()
+    private void OnMove(InputValue inputValue)
     {
-        SkinnedMeshRenderer[] list = GetComponentsInChildren<SkinnedMeshRenderer>();
-
-        foreach (SkinnedMeshRenderer renderer in list)
-            renderer.enabled = false;
-
+        directionInput = inputValue.Get<Vector2>();
     }
 
-    private void Initialize()
+    private void OnRun(InputValue inputValue)
     {
-        _animator = GetComponentInChildren<Animator>();
-    }
-
-    private void FixedUpdate()
-    {
-        movement.y = _rb.velocity.y;
-        movement = (direction.y * transform.forward + direction.x * transform.right) * _currentSpeed;
-        _rb.velocity = movement;
-    }
-
-    private void OnMove(InputValue input)
-    {
-        direction = input.Get<Vector2>();
-    }
-
-    private void OnRun(InputValue input)
-    {
-        _runInput = input.isPressed;
+        isRunning = inputValue.isPressed;
     }
 }
