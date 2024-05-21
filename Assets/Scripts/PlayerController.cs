@@ -1,4 +1,7 @@
+using NUnit.Framework;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -114,5 +117,19 @@ public class PlayerController : MonoBehaviour
     private void OnRun(InputValue inputValue)
     {
         isRunning = inputValue.isPressed;
+    }
+
+    private void OnInteract(InputValue inputValue)
+    {
+        List<Collider> list = Physics.OverlapSphere(transform.position, 1).ToList();
+
+        foreach (Collider collider in list)
+        {
+            if (collider.TryGetComponent(out ProximityButton button))
+            {
+                button.Interact();
+                return;
+            }
+        }
     }
 }

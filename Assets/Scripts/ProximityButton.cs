@@ -1,8 +1,14 @@
 using UnityEngine;
+using UnityEngine.Events;
 
 public class ProximityButton : MonoBehaviour
 {
     public GameObject canvas;
+
+    public UnityEvent playerEntered;
+    public UnityEvent playerExited;
+
+    public UnityEvent playerInteract;
 
     private void Start()
     {
@@ -13,7 +19,7 @@ public class ProximityButton : MonoBehaviour
     {
         if (other.TryGetComponent(out PlayerController playerController))
         {
-            canvas.SetActive(true);
+            playerEntered?.Invoke();
         }
     }
 
@@ -21,7 +27,12 @@ public class ProximityButton : MonoBehaviour
     {
         if (other.TryGetComponent(out PlayerController playerController))
         {
-            canvas.SetActive(false);
+            playerExited?.Invoke();
         }
+    }
+
+    public void Interact()
+    {
+        playerInteract?.Invoke();
     }
 }
