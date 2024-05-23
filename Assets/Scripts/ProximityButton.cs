@@ -3,36 +3,29 @@ using UnityEngine.Events;
 
 public class ProximityButton : MonoBehaviour
 {
-    public GameObject canvas;
-
-    public UnityEvent playerEntered;
-    public UnityEvent playerExited;
-
     public UnityEvent playerInteract;
+    public string actionName;
 
-    private void Start()
-    {
-        canvas.SetActive(false);
-    } 
+    public bool isActive = true;
+    [SerializeField] Quest quest;
 
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.TryGetComponent(out PlayerController playerController))
-        {
-            playerEntered?.Invoke();
-        }
-    }
+    private QuestManager manager;
 
-    private void OnTriggerExit(Collider other)
+    private void Awake()
     {
-        if (other.TryGetComponent(out PlayerController playerController))
-        {
-            playerExited?.Invoke();
-        }
+        manager =FindFirstObjectByType<QuestManager>();
     }
 
     public void Interact()
     {
-        playerInteract?.Invoke();
+        if (isActive)
+        {
+            playerInteract?.Invoke();
+
+            if (quest)
+            {
+                manager.QuestCompete(quest);
+            }
+        }
     }
 }

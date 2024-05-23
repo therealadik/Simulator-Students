@@ -1,7 +1,7 @@
-using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -16,6 +16,10 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float lookXLimit = 45.0f;
 
     [SerializeField] Transform playerCamera;
+
+    [Header("ButtonUI")]
+    [SerializeField] GameObject Button;
+    [SerializeField] TMP_Text ActionText;
 
     [Header("Sounds")]
     [SerializeField] AudioSource footstep;
@@ -34,6 +38,26 @@ public class PlayerController : MonoBehaviour
     private Animator animator;
     private CharacterController characterController;
 
+    public void SetControll(bool value)
+    {
+        isControlled = value;
+
+        if (isControlled == false)
+        {
+            characterController.enabled = false;
+            enabled = false;
+            Button.SetActive(false);
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
+        }
+        else
+        {
+            characterController.enabled = true;
+            enabled = true;
+            Cursor.visible = false;
+            Cursor.lockState = CursorLockMode.Locked;
+        }
+    }
 
     private void Awake()
     {
@@ -43,8 +67,7 @@ public class PlayerController : MonoBehaviour
 
     void Start()
     {
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+        SetControll(true);
     }
 
     void Update()
@@ -121,15 +144,35 @@ public class PlayerController : MonoBehaviour
 
     private void OnInteract(InputValue inputValue)
     {
+        if (!isControlled)
+            return;
+
         List<Collider> list = Physics.OverlapSphere(transform.position, 1).ToList();
 
         foreach (Collider collider in list)
         {
-            if (collider.TryGetComponent(out ProximityButton button))
+            if (collider.TryGetComponent(out ProximityButton button) && button.isActive)
             {
                 button.Interact();
+                Button.SetActive(false);
                 return;
             }
         }
+    }
+
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.TryGetComponent(out ProximityButton button) && button.isActive)
+        {
+            ActionText.text = button.actionName;
+            Button.SetActive(true);
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.TryGetComponent(out ProximityButton button))
+            Button.SetActive(false);
     }
 }
