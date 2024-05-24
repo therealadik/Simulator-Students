@@ -16,6 +16,9 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float lookXLimit = 45.0f;
 
     [SerializeField] Transform playerCamera;
+    [SerializeField] Nofity notifySystem;
+    [SerializeField] LiftSystem listSystem;
+
 
     [Header("ButtonUI")]
     [SerializeField] GameObject Button;
@@ -37,6 +40,7 @@ public class PlayerController : MonoBehaviour
 
     private Animator animator;
     private CharacterController characterController;
+    
 
     public void SetControll(bool value)
     {
@@ -45,7 +49,6 @@ public class PlayerController : MonoBehaviour
         if (isControlled == false)
         {
             characterController.enabled = false;
-            enabled = false;
             Button.SetActive(false);
             Cursor.visible = true;
             Cursor.lockState = CursorLockMode.None;
@@ -53,7 +56,6 @@ public class PlayerController : MonoBehaviour
         else
         {
             characterController.enabled = true;
-            enabled = true;
             Cursor.visible = false;
             Cursor.lockState = CursorLockMode.Locked;
         }
@@ -72,7 +74,53 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        // We are grounded, so recalculate move direction based on axes
+        if (isControlled)
+        {
+            Move();
+            CameraRotate();
+            CheckTriggers();
+        }
+       
+        UpdateAnimator();
+        UpdateAudio();
+    }
+
+    private void CheckTriggers()
+    {
+        List<Collider> list = Physics.OverlapSphere(transform.position, 1).ToList();
+        Button.SetActive(false);
+
+
+        foreach (Collider collider in list)
+        {
+            if (collider.TryGetComponent(out LuftButtons buttonsLift))
+            {
+                notifySystem.ShowNofity("Нажми цифру на клавиатуре, чтобы попасть на нужный этаж");
+                int numberTo = 0;
+                if (Input.GetKeyDown(KeyCode.Alpha4))
+                {
+                    numberTo = 4;
+                }
+                else if (Input.GetKeyDown(KeyCode.Alpha1))
+                {
+                    numberTo = 1;
+                }
+
+                if (numberTo != 0)
+                {
+                    listSystem.LiftTo(buttonsLift.transform.parent.GetComponent<Lift>(), numberTo);
+                }
+            }
+
+            if (collider.TryGetComponent(out ProximityButton button))
+            {
+                Button.SetActive(button.isActive);
+            }
+        }
+    }
+
+    private void Move()
+    {
         Vector3 forward = transform.forward;
         Vector3 right = transform.right;
         // Press Left Shift to run
@@ -93,15 +141,11 @@ public class PlayerController : MonoBehaviour
 
         // Move the controller
         characterController.Move(moveDirection * Time.deltaTime);
-
-        // Player and Camera rotation
-        CameraRotate();
-        UpdateAnimator();
-        UpdateAudio();
     }
 
     private void UpdateAudio()
     {
+        return;
         if (isMoving)
         {
             if (footstep.isPlaying == false)
@@ -154,7 +198,6 @@ public class PlayerController : MonoBehaviour
             if (collider.TryGetComponent(out ProximityButton button) && button.isActive)
             {
                 button.Interact();
-                Button.SetActive(false);
                 return;
             }
         }
@@ -166,13 +209,6 @@ public class PlayerController : MonoBehaviour
         if (other.TryGetComponent(out ProximityButton button) && button.isActive)
         {
             ActionText.text = button.actionName;
-            Button.SetActive(true);
         }
-    }
-
-    private void OnTriggerExit(Collider other)
-    {
-        if (other.TryGetComponent(out ProximityButton button))
-            Button.SetActive(false);
     }
 }

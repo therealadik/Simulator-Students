@@ -9,8 +9,8 @@ public class QuestGiver : MonoBehaviour
 
     private ProximityButton button;
 
-    private Quest.TypeComplete typeComplete;
     private DialogueManager dialogueManager;
+    private Animator animator;
 
     public Quest GetQuest => quest;
 
@@ -20,32 +20,31 @@ public class QuestGiver : MonoBehaviour
     {
         dialogueManager = FindFirstObjectByType<DialogueManager>();
         button = GetComponentInChildren<ProximityButton>();
+        animator = GetComponentInChildren<Animator>();
     }
 
     void Start()
     {
-        typeComplete = Quest.TypeComplete.NotTaken;
         namePeople = name;
     }
 
     public void PlayerInteract()
     {
-        if (typeComplete != Quest.TypeComplete.Completed)
-        {
-            StartDialog();
-        }
+         StartDialog();
     }
 
     public void StartDialog()
     {
         cameraDialog.gameObject.SetActive(true);
         dialogueManager.StartDialogue(dialog, this);
+        animator.SetBool("Talking", true);
     }
 
     public void TakeQuest()
     {
         cameraDialog.gameObject.SetActive(false);
         Destroy(button.gameObject);
+        animator.SetBool("Talking", false);
     }
 
 }

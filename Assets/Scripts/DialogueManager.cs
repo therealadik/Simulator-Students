@@ -72,11 +72,17 @@ public class DialogueManager : MonoBehaviour
     private void EndDialogue()
     {
         animator.SetBool("isOpen", false);
-        playerController.SetControll(true);
+        StartCoroutine(TakePlayerControl());
         if (currentQuestGiver)
         {
             questManager.AddQuest(currentQuestGiver.GetQuest);
             currentQuestGiver.TakeQuest();
         }
+    }
+
+    private IEnumerator TakePlayerControl()
+    {
+        yield return new WaitForSeconds(2);
+        playerController.SetControll(true);
     }
 }

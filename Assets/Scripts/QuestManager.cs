@@ -19,7 +19,7 @@ public class QuestManager : MonoBehaviour
     {
         if (takenQuests.Contains(quest))
         {
-            Destroy(quest.prefabWithUI);
+            quest.prefabWithUI.GetComponent<QuestTextUI>().Complete();
             takenQuests.Remove(quest);
         }
         else

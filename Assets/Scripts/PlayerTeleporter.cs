@@ -17,4 +17,11 @@ public class PlayerTeleporter : MonoBehaviour
         playerController.transform.position = point.position;
         playerController.SetControll(true);
     }
+
+    public static void TeleportTo(PlayerController playerController, Vector3 pos)
+    {
+        playerController.SetControll(false);
+        playerController.transform.position = pos;
+        playerController.SetControll(true);
+    }
 }
