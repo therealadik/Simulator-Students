@@ -1,18 +1,31 @@
+using System.Collections.Generic;
+using Unity.Cinemachine;
 using UnityEngine;
 
 public class QuestGiver : MonoBehaviour
 {
     private string namePeople;
-    [SerializeField] private Quest quest;
-    [SerializeField] private Dialog dialog;
-    [SerializeField] private Cinemachine.CinemachineVirtualCamera cameraDialog;
+    [SerializeField] private List<Quest> quests;
+    [SerializeField] private List<Dialog> dialogs;
+    [SerializeField] private CinemachineCamera cameraDialog;
 
     private ProximityButton button;
 
     private DialogueManager dialogueManager;
     private Animator animator;
 
-    public Quest GetQuest => quest;
+    private Queue<Quest> questQueue = new();
+    private Queue<Dialog> dialogQueue = new();
+
+    public Quest GetQuest()
+    {
+        if (questQueue.Count > 0)
+        {
+            return questQueue.Dequeue();
+        }
+
+        return null;
+    }
 
     // Start is called before the first frame update
 
@@ -25,26 +38,43 @@ public class QuestGiver : MonoBehaviour
 
     void Start()
     {
+        foreach (Quest quest in quests)
+            questQueue.Enqueue(quest);
+
+        foreach (Dialog dialog in dialogs)
+            dialogQueue.Enqueue(dialog);
+
         namePeople = name;
     }
 
     public void PlayerInteract()
     {
-         StartDialog();
+        StartDialog();
     }
 
     public void StartDialog()
     {
         cameraDialog.gameObject.SetActive(true);
-        dialogueManager.StartDialogue(dialog, this);
-        animator.SetBool("Talking", true);
+        dialogueManager.StartDialogue(dialogQueue.Dequeue(), this);
+        if (animator)
+            animator.SetBool("Talking", true);
     }
 
-    public void TakeQuest()
+    public void EndDialog()
     {
         cameraDialog.gameObject.SetActive(false);
-        Destroy(button.gameObject);
-        animator.SetBool("Talking", false);
+
+        if (questQueue.Count == 0)
+        {
+            Destroy(button.gameObject);
+        }
+        else
+        {
+            button.isActive = true;
+        }
+
+        if (animator)
+            animator.SetBool("Talking", false);
     }
 
 }

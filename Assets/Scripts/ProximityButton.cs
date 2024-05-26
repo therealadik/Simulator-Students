@@ -28,4 +28,9 @@ public class ProximityButton : MonoBehaviour
             }
         }
     }
+
+    public void SetActive(bool active)
+    {
+        isActive = active;
+    }
 }

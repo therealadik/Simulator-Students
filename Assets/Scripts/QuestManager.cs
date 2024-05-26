@@ -22,10 +22,6 @@ public class QuestManager : MonoBehaviour
             quest.prefabWithUI.GetComponent<QuestTextUI>().Complete();
             takenQuests.Remove(quest);
         }
-        else
-        {
-            print("квест уже выполнен");
-        }
     }
 
 }

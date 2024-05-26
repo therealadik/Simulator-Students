@@ -7,6 +7,7 @@ using UnityEngine;
 public class DialogueManager : MonoBehaviour
 {
     private Queue<string> sentences = new();
+    private Dialog currentDialog;
     private QuestGiver currentQuestGiver = null;
     private PlayerController playerController;
     private QuestManager questManager;
@@ -25,6 +26,7 @@ public class DialogueManager : MonoBehaviour
 
     public void StartDialogue(Dialog dialog, QuestGiver questGiver = null)
     {
+        currentDialog = dialog;
         currentQuestGiver = questGiver;
         nameText.text = dialog.NPCName;
         animator.SetBool("isOpen", true);
@@ -42,15 +44,16 @@ public class DialogueManager : MonoBehaviour
 
     public void DisplayNextSentence()
     {
-        if (sentences.Count == 0)
-        {
-            EndDialogue();
-            return;
-        }
         StopAllCoroutines();
         if (currentSentence != "" && sentenceText.text.Length != currentSentence.Length)
         {
             sentenceText.text = currentSentence;
+            return;
+        }
+
+        if (sentences.Count == 0)
+        {
+            EndDialogue();
             return;
         }
 
@@ -75,8 +78,17 @@ public class DialogueManager : MonoBehaviour
         StartCoroutine(TakePlayerControl());
         if (currentQuestGiver)
         {
-            questManager.AddQuest(currentQuestGiver.GetQuest);
-            currentQuestGiver.TakeQuest();
+            Quest quest = currentQuestGiver.GetQuest();
+            if (quest != null) {
+                questManager.AddQuest(quest);
+            }
+            currentQuestGiver.EndDialog();
+
+        }
+
+        if (currentDialog.questCompleted != null) 
+        {
+            questManager.QuestCompete(currentDialog.questCompleted);
         }
     }
 

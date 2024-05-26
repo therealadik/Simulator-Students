@@ -15,7 +15,6 @@ public class Lift : MonoBehaviour
 
     public int Floor => floor;
 
-    private bool isWork = true;
     private void Awake()
     {
         animator = GetComponent<Animator>();
