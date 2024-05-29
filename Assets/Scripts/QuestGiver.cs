@@ -16,6 +16,7 @@ public class QuestGiver : MonoBehaviour
 
     private Queue<Quest> questQueue = new();
     private Queue<Dialog> dialogQueue = new();
+    private QuestManager questManager;
 
     public Quest GetQuest()
     {
@@ -31,6 +32,7 @@ public class QuestGiver : MonoBehaviour
 
     private void Awake()
     {
+        questManager = FindFirstObjectByType<QuestManager>();
         dialogueManager = FindFirstObjectByType<DialogueManager>();
         button = GetComponentInChildren<ProximityButton>();
         animator = GetComponentInChildren<Animator>();
@@ -49,10 +51,16 @@ public class QuestGiver : MonoBehaviour
 
     public void PlayerInteract()
     {
-        StartDialog();
+        Quest quest = questQueue.Peek();
+
+        if (questManager.isQuestCompleted(quest) == false && questManager.IsQuestTaken(quest) == false)
+        {
+            TalkingNPC();
+        }
+
     }
 
-    public void StartDialog()
+    public void TalkingNPC()
     {
         cameraDialog.gameObject.SetActive(true);
         dialogueManager.StartDialogue(dialogQueue.Dequeue(), this);

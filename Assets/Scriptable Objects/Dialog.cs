@@ -6,7 +6,6 @@ public class Dialog : ScriptableObject
 
     [TextArea(3, 10)]
     public string[] dialogLines;
-    public string NPCName;
 
     public Quest questCompleted;
     // ƒобавь другие пол€, которые тебе нужны

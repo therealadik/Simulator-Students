@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -28,7 +27,7 @@ public class DialogueManager : MonoBehaviour
     {
         currentDialog = dialog;
         currentQuestGiver = questGiver;
-        nameText.text = dialog.NPCName;
+        nameText.text = questGiver.name;
         animator.SetBool("isOpen", true);
         playerController.SetControll(false);
 
@@ -58,7 +57,7 @@ public class DialogueManager : MonoBehaviour
         }
 
         currentSentence = sentences.Dequeue();
-        
+
         StartCoroutine(TypeSentence());
     }
 
@@ -79,14 +78,15 @@ public class DialogueManager : MonoBehaviour
         if (currentQuestGiver)
         {
             Quest quest = currentQuestGiver.GetQuest();
-            if (quest != null) {
+            if (quest != null)
+            {
                 questManager.AddQuest(quest);
             }
             currentQuestGiver.EndDialog();
 
         }
 
-        if (currentDialog.questCompleted != null) 
+        if (currentDialog.questCompleted != null)
         {
             questManager.QuestCompete(currentDialog.questCompleted);
         }

@@ -114,6 +114,7 @@ public class PlayerController : MonoBehaviour
 
             if (collider.TryGetComponent(out ProximityButton button))
             {
+                ActionText.text = button.actionName;
                 Button.SetActive(button.isActive);
             }
         }
@@ -200,15 +201,6 @@ public class PlayerController : MonoBehaviour
                 button.Interact();
                 return;
             }
-        }
-    }
-
-
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.TryGetComponent(out ProximityButton button) && button.isActive)
-        {
-            ActionText.text = button.actionName;
         }
     }
 }
