@@ -16,7 +16,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float lookXLimit = 45.0f;
 
     [SerializeField] Transform playerCamera;
-    [SerializeField] Nofity notifySystem;
+    NotifySystem notifySystem;
     [SerializeField] LiftSystem listSystem;
 
 
@@ -63,6 +63,7 @@ public class PlayerController : MonoBehaviour
 
     private void Awake()
     {
+        notifySystem = FindFirstObjectByType<NotifySystem>();
         animator = GetComponentInChildren<Animator>();
         characterController = GetComponent<CharacterController>();
     }

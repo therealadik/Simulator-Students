@@ -18,6 +18,8 @@ public class QuestGiver : MonoBehaviour
     private Queue<Dialog> dialogQueue = new();
     private QuestManager questManager;
 
+    private NotifySystem notifySystem;
+
     public Quest GetQuest()
     {
         if (questQueue.Count > 0)
@@ -35,6 +37,7 @@ public class QuestGiver : MonoBehaviour
         questManager = FindFirstObjectByType<QuestManager>();
         dialogueManager = FindFirstObjectByType<DialogueManager>();
         button = GetComponentInChildren<ProximityButton>();
+        notifySystem = FindFirstObjectByType<NotifySystem>();
         animator = GetComponentInChildren<Animator>();
     }
 
@@ -51,12 +54,24 @@ public class QuestGiver : MonoBehaviour
 
     public void PlayerInteract()
     {
-        Quest quest = questQueue.Peek();
-
-        if (questManager.isQuestCompleted(quest) == false && questManager.IsQuestTaken(quest) == false)
+        if (questQueue.Count > 0)
         {
-            TalkingNPC();
+            Quest quest = questQueue.Peek();
+
+            if (questManager.isQuestCompleted(quest) == false && questManager.IsQuestTaken(quest) == false)
+            {
+                TalkingNPC();
+            }
+            else
+            {
+                notifySystem.ShowNofity("Доступных заданий нет");
+            }
         }
+        else
+        {
+            notifySystem.ShowNofity("Доступных заданий нет");
+        }
+
 
     }
 
@@ -72,14 +87,7 @@ public class QuestGiver : MonoBehaviour
     {
         cameraDialog.gameObject.SetActive(false);
 
-        if (questQueue.Count == 0)
-        {
-            Destroy(button.gameObject);
-        }
-        else
-        {
-            button.isActive = true;
-        }
+        button.isActive = true;
 
         if (animator)
             animator.SetBool("Talking", false);
