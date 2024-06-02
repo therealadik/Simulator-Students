@@ -53,18 +53,26 @@ public class QuestGiver : MonoBehaviour
     }
 
     public void PlayerInteract()
-    {
-        if (questQueue.Count > 0)
+    { 
+        if (dialogQueue.Count > 0)
         {
-            Quest quest = questQueue.Peek();
+            Dialog dialog = dialogQueue.Peek();
+            if (questQueue.Count > 0)
+            {
+                Quest quest = questQueue.Peek();
 
-            if (questManager.isQuestCompleted(quest) == false && questManager.IsQuestTaken(quest) == false)
+                if (questManager.isQuestCompleted(quest) == false && questManager.IsQuestTaken(quest) == false)
+                {
+                    TalkingNPC();
+                }
+                else
+                {
+                    notifySystem.ShowNofity("Доступных заданий нет");
+                }
+            }
+            else if (dialog.questCompleted && questManager.IsQuestTaken(dialog.questCompleted) == true)
             {
                 TalkingNPC();
-            }
-            else
-            {
-                notifySystem.ShowNofity("Доступных заданий нет");
             }
         }
         else
@@ -91,6 +99,11 @@ public class QuestGiver : MonoBehaviour
 
         if (animator)
             animator.SetBool("Talking", false);
+
+        if (dialogQueue.Count == 0)
+        {
+            button.isActive = false;
+        }
     }
 
 }
