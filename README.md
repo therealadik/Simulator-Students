@@ -1,4 +1,4 @@
-# Simulator Students
+# StudentPerformanceSimulator
 
 ## Overview
 
